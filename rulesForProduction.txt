@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "leaderboard": {
+      ".read": true,
+      "$mode": {
+        "$date": {
+          "$user_id": {
+            ".write": "!data.exists() || newData.child('score').val() > data.child('score').val()"
+          }
+        }
+      }
+    }
+  }
+}
