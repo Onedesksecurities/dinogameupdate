@@ -3,9 +3,8 @@ let username, userId;
 let userReadyPromise = setupUsernameAndUserId().then(ids => {
     username = ids.username;
     userId = ids.userId;
-    // Set up listeners for both leaderboards for real-time updates
-    subscribeLeaderboard("daily");
-    subscribeLeaderboard("alltime");
+    fetchLeaderboard("daily");
+    fetchLeaderboard("alltime");
 });
 
 async function setupUsernameAndUserId() {
@@ -42,7 +41,14 @@ async function submitScoreAndUpdatePosition(score, mode = "daily") {
                 username,
                 score,
                 ts: Date.now()
+            }).then(() => {
+                // After updating, re-fetch and update leaderboard & position
+                fetchLeaderboard(mode, true); // force immediate re-render
+                forceUserPositionUpdate(mode);
             });
+        } else {
+            // Even if not updated, ensure position is shown
+            forceUserPositionUpdate(mode);
         }
     });
 }
@@ -53,15 +59,15 @@ async function onGameOver(score) {
     await submitScoreAndUpdatePosition(score, "alltime");
 }
 
-// Real-time listeners for both leaderboards
 let leaderboardListeners = {};
+const FETCH_INTERVAL = 30000; 
+let lastRenderTime = { daily: 0, alltime: 0 };
 let latestEntries = { daily: [], alltime: [] };
-let currentTab = "daily"; // Track which leaderboard is visible
 
-function subscribeLeaderboard(mode = "daily") {
+// Add `forceRender` to always rerender when needed
+function fetchLeaderboard(mode = "daily", forceRender = false) {
     const dateKey = mode === "daily" ? getTodayKey() : "all";
     const refPath = `leaderboard/${mode}/${dateKey}`;
-    // Remove previous listener if exists
     if (leaderboardListeners[mode]) {
         leaderboardListeners[mode].off();
     }
@@ -75,10 +81,10 @@ function subscribeLeaderboard(mode = "daily") {
         });
         entries.sort((a, b) => b.score - a.score);
         latestEntries[mode] = entries;
-        // Only render if this tab is currently visible
-        if (mode === currentTab) {
+        const now = Date.now();
+        if (forceRender || now - lastRenderTime[mode] > FETCH_INTERVAL || !lastRenderTime[mode]) {
             renderLeaderboard(entries, mode);
-            forceUserPositionUpdate(mode);
+            lastRenderTime[mode] = now;
         }
     });
 }
@@ -87,7 +93,6 @@ async function renderLeaderboard(entries, mode) {
     await userReadyPromise; // Ensure userId and username are ready
 
     const contentDiv = document.getElementById(mode === "daily" ? "leaderboard-daily" : "leaderboard-alltime");
-    if (!contentDiv) return;
     contentDiv.innerHTML = "";
 
     entries.forEach((entry, i) => {
@@ -100,8 +105,12 @@ async function renderLeaderboard(entries, mode) {
         `;
         contentDiv.appendChild(rowDiv);
     });
+
+    // Always update user's position text, even if not in top entries
+    forceUserPositionUpdate(mode);
 }
 
+// Always updates "Your Position" text, even if user is not in leaderboard
 function forceUserPositionUpdate(mode) {
     const dateKey = mode === "daily" ? getTodayKey() : "all";
     firebase.database().ref(`leaderboard/${mode}/${dateKey}`)
@@ -115,7 +124,6 @@ function forceUserPositionUpdate(mode) {
             all.sort((a, b) => b.score - a.score);
             const myIndex = all.findIndex(e => e.userId === userId);
             const positionDiv = document.getElementById("user-position");
-            if (!positionDiv) return;
             if (myIndex >= 0) {
                 positionDiv.innerHTML = `
                     <span class="left">Your Position</span>
@@ -127,25 +135,19 @@ function forceUserPositionUpdate(mode) {
                     <span class="left">Your Position</span>
                     <span class="right">N/A</span>
                 `;
-                positionDiv.style.display = "none";
+                positionDiv.style.display = "flex";
             }
         });
 }
 
 async function switchTab(mode) {
     await userReadyPromise;
-    currentTab = mode;
-
     document.querySelectorAll(".leaderboard-tab").forEach(btn => btn.classList.remove("active"));
-    const tabBtn = document.querySelector(`.leaderboard-tab[onclick="switchTab('${mode}')"]`);
-    if (tabBtn) tabBtn.classList.add("active");
+    document.querySelector(`.leaderboard-tab[onclick="switchTab('${mode}')"]`).classList.add("active");
 
     document.getElementById("leaderboard-daily").style.display = mode === "daily" ? "block" : "none";
     document.getElementById("leaderboard-alltime").style.display = mode === "alltime" ? "block" : "none";
 
-    // (Re)subscribe to the active tab for real-time updates and force render
-    subscribeLeaderboard(mode);
-    // Render immediately with the latest entries (in case the listener hasn't fired yet)
     renderLeaderboard(latestEntries[mode] || [], mode);
     forceUserPositionUpdate(mode);
 }
