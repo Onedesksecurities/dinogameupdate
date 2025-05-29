@@ -433,7 +433,7 @@
             // Redraw the elements back onto the canvas.
             if (this.canvas) {
                 this.canvas.width = this.dimensions.WIDTH;
-                this.canvas.height = Math.min(this.dimensions.HEIGHT, window.innerHeight * 0.7);
+                this.canvas.height = this.dimensions.HEIGHT;
 
                 Runner.updateCanvasScaling(this.canvas);
 
@@ -496,6 +496,7 @@
                 this.restart();
             }
         },
+
 
         /**
          * Update the game status to started.
@@ -589,6 +590,7 @@
                 } else {
                     var actualDistance =
                         this.distanceMeter.getActualDistance(Math.ceil(this.distanceRan));
+
                     if (actualDistance > 0) {
                         this.invertTrigger = !(actualDistance %
                             this.config.INVERT_DISTANCE);
@@ -670,6 +672,7 @@
          * @param {Event} e
          */
         onKeyDown: function (e) {
+            // Prevent native page scrolling whilst tapping on mobile.
             if (IS_MOBILE && this.playing) {
                 e.preventDefault();
             }
@@ -792,15 +795,13 @@
             } else {
                 this.gameOverPanel.draw();
             }
-            
+
             // Update the high score.
             if (this.distanceRan > this.highestScore) {
                 this.highestScore = Math.ceil(this.distanceRan);
                 this.distanceMeter.setHighScore(this.highestScore);
             }
 
-            
-            // Reset the time clock.
             this.time = getTimeStamp();
 
             let score = this.distanceMeter.getActualDistance(Math.ceil(this.distanceRan))
@@ -863,18 +864,14 @@
             const scaledCanvasHeight = this.dimensions.HEIGHT * scale;
             // Positions the game container at 10% of the available vertical window
             // height minus the game container height.
-            // const translateY = Math.ceil(Math.max(0, (windowHeight - scaledCanvasHeight -
-            //                                           Runner.config.ARCADE_MODE_INITIAL_TOP_POSITION) *
-            //                                       Runner.config.ARCADE_MODE_TOP_POSITION_PERCENT)) *
-            //       window.devicePixelRatio;
-
-            const translateY = 0
+            const translateY = Math.ceil(Math.max(0, (windowHeight - scaledCanvasHeight -
+                                                      Runner.config.ARCADE_MODE_INITIAL_TOP_POSITION) *
+                                                  Runner.config.ARCADE_MODE_TOP_POSITION_PERCENT)) *
+                  window.devicePixelRatio;
 
             const cssScale = scale;
-            // this.containerEl.style.transform =
-            //     'scale(' + cssScale + ') translateY(' + translateY + 'px)';
-            this.containerEl.style.transform = 'none';
-
+            this.containerEl.style.transform =
+                'scale(' + cssScale + ') translateY(' + translateY + 'px)';
         },
         
         /**
@@ -2739,7 +2736,7 @@
          */
         resize: function (width, height) {
             this.canvas.width = width;
-            this.canvas.height = Math.min(window.innerHeight * 0.5, 400);
+            this.canvas.height = height;
         },
 
         /**
