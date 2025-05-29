@@ -127,7 +127,7 @@ function forceUserPositionUpdate(mode) {
                     <span class="left">Your Position</span>
                     <span class="right">N/A</span>
                 `;
-                positionDiv.style.display = "flex";
+                positionDiv.style.display = "none";
             }
         });
 }
