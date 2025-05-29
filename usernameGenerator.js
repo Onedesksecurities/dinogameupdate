@@ -22,17 +22,17 @@ function generateUniqueUsername(mode = "alltime", dateKey = "all") {
         let username;
         const maxAttempts = 10;
         while (attempts < maxAttempts) {
-            username = `${pick(ADJECTIVES)}-${pick(ANIMALS)}}`;
+            username = `${pick(ADJECTIVES)}-${pick(ANIMALS)}`;
             // Check both alltime and today's daily by default
             let existsAlltime = await usernameExistsInLeaderboard(username, "alltime", "all");
             let existsDaily = await usernameExistsInLeaderboard(username, "daily", getTodayKey());
             if (!existsAlltime && !existsDaily) {
-                resolve(username);
+                resolve(username.toUpperCase());
                 return;
             }
             attempts++;
         }
-        username = `${username}-${Date.now()}}`;
+        username = `${username}-${Date.now()}`;
         resolve(username.toUpperCase());
     });
 }

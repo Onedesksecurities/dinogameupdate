@@ -1,11 +1,11 @@
 @font-face {
-  font-family: 'Press Start 2P';
+  font-family: 'DogicaPixel';
   src: url('./assets/fonts/dogicapixel.ttf') format('truetype');
   font-weight: normal;
 }
 
 @font-face {
-  font-family: 'Press Start 2P';
+  font-family: 'DogicaPixel';
   src: url('./assets/fonts/dogicapixelbold.ttf') format('truetype');
   font-weight: bold;
 }
@@ -212,7 +212,7 @@ body.offline {
 
 #user-position {
   color: #000000;
-  font-family: 'Press Start 2P', Arial, sans-serif;
+  font-family: 'DogicaPixel', Arial, sans-serif;
   font-size: 0.70rem;
   font-weight: bold;
   margin-top: 0.5rem;
@@ -246,7 +246,7 @@ body.offline {
   padding: 0.5rem 1rem;
   border: 1px solid #979797;
   border-radius: 10px;
-  font-family: 'Press Start 2P', Arial, sans-serif;
+  font-family: 'DogicaPixel', Arial, sans-serif;
   background: #f9f9fa;
   position: relative;
   z-index: 10;
